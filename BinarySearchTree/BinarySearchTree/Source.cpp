@@ -1,28 +1,29 @@
 #include <iostream>
 
-struct TreeNode {
-	TreeNode(int node_key = 0, TreeNode *left_node_ptr = nullptr, TreeNode *right_node_ptr = nullptr);
-	int key;
-	TreeNode *left, *right;
+
+struct BinarySearchTree {
+	struct TreeNode {
+		int key;
+		TreeNode *left, *right;
+		TreeNode(int node_key = 0, TreeNode *left_node_ptr = nullptr, TreeNode *right_node_ptr = nullptr);
+	};
+
+	TreeNode *root;
+
+	BinarySearchTree(TreeNode *root_node = nullptr);
+	
+	// TODO: implementation
+	
 };
 
-TreeNode::TreeNode(int node_key, TreeNode* left_node_ptr, TreeNode* right_node_ptr) {
+BinarySearchTree::TreeNode::TreeNode(int node_key, TreeNode* left_node_ptr, TreeNode* right_node_ptr) {
 	key = node_key;
 	left = left_node_ptr;
 	right = right_node_ptr;
 }
 
-
-struct BinarySearchTree {
-	BinarySearchTree();
-	// TODO: implementation
-	TreeNode *root;
-	// TODO: maybe more implementation
-};
-
-BinarySearchTree::BinarySearchTree() {
-	root = nullptr;
-	// TODO: maybe more implementation
+BinarySearchTree::BinarySearchTree(TreeNode *root_node) {
+	root = root_node;
 }
 
 
