@@ -16,11 +16,14 @@ struct BinarySearchTree {
 	void operator=(const BinarySearchTree &) = delete;
 
 	~BinarySearchTree();	// TODO: implement
-	
-	TreeNode * search(int key);	// TODO: reimplement
-	void insert(int key);	// TODO: reimplement using find or findParent function
 
-	void levelOrderToCout();
+	TreeNode *find_parent(int key);
+
+	void insert(int key);
+
+	void level_order_to_cout();
+
+	TreeNode *search(int key);	// TODO: reimplement
 
 	// TODO: implement output
 
@@ -45,6 +48,20 @@ BinarySearchTree::~BinarySearchTree() {
 	root = nullptr;
 }
 
+BinarySearchTree::TreeNode* BinarySearchTree::find_parent(int key) {
+	TreeNode *parent = nullptr, *next = root;
+	while (next != nullptr && key != next->key) {
+		parent = next;
+		if (key < next->key) {
+			next = next->left;
+		}
+		else {
+			next = next->right;
+		}
+	}
+	return parent;
+}
+
 BinarySearchTree::TreeNode* BinarySearchTree::search(int key) {
 	TreeNode *current = root;
 	while (current != nullptr && key != current->key) {
@@ -60,38 +77,44 @@ BinarySearchTree::TreeNode* BinarySearchTree::search(int key) {
 
 void BinarySearchTree::insert(int key) {
 	TreeNode *new_node = new TreeNode(key);
-	TreeNode *current = nullptr, *next = root;
-	if (root == nullptr) {
+	TreeNode *parent = find_parent(key);
+	if (parent == nullptr) {
 		root = new_node;
 		return;
 	}
-	while (next != nullptr) {
-		current = next;
-		if (new_node->key == current->key) {
-			// THIS WHILE STATEMENT ENSURES FIFO
-			while (current->left != nullptr && current->left->key == new_node->key) {
-				current = current->left;
-			}
-			break;
-		}
-		if (new_node->key < current->key) {
-			next = current->left;
+	if (key < parent->key) {
+		if (parent->left == nullptr) {
+			parent->left = new_node;
 		}
 		else {
-			next = current->right;
+			// TODO: implement
 		}
 	}
-	if (new_node->key <= current->key) {
-		new_node->left = current->left;
-		current->left = new_node;
+	else if (key > parent->key) {
+		if (parent->right == nullptr) {
+			parent->right = new_node;
+		}
+		else {
+			// TODO: implement
+		}
 	}
 	else {
-		new_node->right = current->right;
-		current->right = new_node;
+		if (parent->left == nullptr) {
+			parent->left = new_node;
+		}
+		else {
+			parent = parent->left;
+			TreeNode *next = parent->right;
+			while (next != nullptr) {
+				parent = next;
+				next = parent->right;
+			}
+			parent->right = new_node;
+		}
 	}
 }
 
-void BinarySearchTree::levelOrderToCout() {
+void BinarySearchTree::level_order_to_cout() {
 	std::queue<TreeNode *> q;
 	TreeNode *elem;
 	q.push(root);
@@ -159,7 +182,7 @@ int main() {
 			break;
 		case 4:
 			std::cout << "Level order:" << std::endl;
-			bst.levelOrderToCout();
+			bst.level_order_to_cout();
 			break;
 		case 5:
 			// TODO: delete key from BST
@@ -170,6 +193,8 @@ int main() {
 		case 0:
 			// TODO: delete BST
 			is_running = false;
+			break;
+		default: 
 			break;
 		}
 		std::cout << std::endl;
