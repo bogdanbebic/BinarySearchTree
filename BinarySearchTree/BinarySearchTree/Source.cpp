@@ -2,35 +2,29 @@
 #include <queue>
 
 
-struct BinarySearchTree {
+class BinarySearchTree {
+public:
 	struct TreeNode {
 		int key;
 		TreeNode *left, *right;
 		explicit TreeNode(int node_key = 0, TreeNode *left_node_ptr = nullptr, TreeNode *right_node_ptr = nullptr);
 	};
-	TreeNode *root;
 	
 	explicit BinarySearchTree(TreeNode *root_node = nullptr);
-
 	BinarySearchTree(const BinarySearchTree &) = delete;
 	void operator=(const BinarySearchTree &) = delete;
-
-	~BinarySearchTree();	// TODO: implement
-
-	TreeNode *find_parent(int key);
-
+	~BinarySearchTree();
+	void deallocate_nodes();
+	TreeNode *find_parent(int key) const;
 	void insert(int key);
-
-	void level_order_to_cout();
-
-	TreeNode *search(int key);	// TODO: reimplement
-
-	// TODO: implement output
-
+	void level_order_to_cout() const;
+	TreeNode *search(int key) const;	// NOT USED
 	// TODO: implement key deletion
-
 	// TODO: imlement max key reps searching
-
+private:
+	TreeNode *inorder_pred(TreeNode *start_node) const;
+	void insert_below_parent(int key, TreeNode *parent);
+	TreeNode *root_;
 };
 
 BinarySearchTree::TreeNode::TreeNode(int node_key, TreeNode* left_node_ptr, TreeNode* right_node_ptr) {
@@ -40,16 +34,16 @@ BinarySearchTree::TreeNode::TreeNode(int node_key, TreeNode* left_node_ptr, Tree
 }
 
 BinarySearchTree::BinarySearchTree(TreeNode *root_node) {
-	root = root_node;
+	root_ = root_node;
 }
 
 BinarySearchTree::~BinarySearchTree() {
-	// TODO: deallocate all nodes
-	root = nullptr;
+	deallocate_nodes();
+	root_ = nullptr;
 }
 
-BinarySearchTree::TreeNode* BinarySearchTree::find_parent(int key) {
-	TreeNode *parent = nullptr, *next = root;
+BinarySearchTree::TreeNode* BinarySearchTree::find_parent(int key) const {
+	TreeNode *parent = nullptr, *next = root_;
 	while (next != nullptr && key != next->key) {
 		parent = next;
 		if (key < next->key) {
@@ -62,8 +56,11 @@ BinarySearchTree::TreeNode* BinarySearchTree::find_parent(int key) {
 	return parent;
 }
 
-BinarySearchTree::TreeNode* BinarySearchTree::search(int key) {
-	TreeNode *current = root;
+/**
+ * NOT USED
+ */
+BinarySearchTree::TreeNode* BinarySearchTree::search(int key) const {
+	TreeNode *current = root_;
 	while (current != nullptr && key != current->key) {
 		if (key < current->key) {
 			current = current->left;
@@ -75,51 +72,75 @@ BinarySearchTree::TreeNode* BinarySearchTree::search(int key) {
 	return current;
 }
 
-void BinarySearchTree::insert(int key) {
-	TreeNode *new_node = new TreeNode(key);
-	TreeNode *parent = find_parent(key);
-	if (parent == nullptr) {
-		root = new_node;
-		return;
-	}
-	if (key < parent->key) {
-		if (parent->left == nullptr) {
-			parent->left = new_node;
-		}
-		else {
-			// TODO: implement
-		}
-	}
-	else if (key > parent->key) {
-		if (parent->right == nullptr) {
-			parent->right = new_node;
-		}
-		else {
-			// TODO: implement
-		}
-	}
-	else {
-		if (parent->left == nullptr) {
-			parent->left = new_node;
-		}
-		else {
-			parent = parent->left;
-			TreeNode *next = parent->right;
-			while (next != nullptr) {
-				parent = next;
-				next = parent->right;
-			}
-			parent->right = new_node;
+void BinarySearchTree::deallocate_nodes() {
+	std::queue<TreeNode *> q;
+	q.push(root_);
+	while (!q.empty()) {
+		TreeNode *elem = q.front();
+		q.pop();
+		if (elem != nullptr) {
+			q.push(elem->left);
+			q.push(elem->right);
+			delete elem;
 		}
 	}
 }
 
-void BinarySearchTree::level_order_to_cout() {
+/**	!!!!! WARNING !!!!!
+ *	ONLY FINDS INORDER PRED BELOW CURRENT NODE
+ */
+BinarySearchTree::TreeNode* BinarySearchTree::inorder_pred(TreeNode* start_node) const {
+	TreeNode *pred = start_node;
+	if (start_node->left != nullptr) {
+		pred = start_node->left;
+		while (pred->right != nullptr) {
+			pred = pred->right;
+		}
+	}
+	return pred;
+}
+
+/**	!!!!! WARNING !!!!!
+ *	DOES NOT CHECK EDGE CASE parent == nullptr
+ */
+void BinarySearchTree::insert_below_parent(int key, TreeNode* parent) {
+	auto new_node = new TreeNode(key);
+	if (key <= parent->key) {
+		new_node->left = parent->left;
+		parent->left = new_node;
+	}
+	else {
+		new_node->right = parent->right;
+		parent->right = new_node;
+	}
+}
+
+void BinarySearchTree::insert(int key) {
+	TreeNode *parent = find_parent(key);
+	if (parent == nullptr) {
+		if (root_ == nullptr) {
+			root_ = new TreeNode(key);
+		}
+		else {
+			parent = inorder_pred(root_);
+			insert_below_parent(key, parent);
+		}
+		return;
+	}
+	if (parent->left != nullptr && parent->left->key == key) {
+		parent = inorder_pred(parent->left);
+	}
+	else if (parent->right != nullptr && parent->right->key == key) {
+		parent = inorder_pred(parent->right);
+	}
+	insert_below_parent(key, parent);
+}
+
+void BinarySearchTree::level_order_to_cout() const {
 	std::queue<TreeNode *> q;
-	TreeNode *elem;
-	q.push(root);
+	q.push(root_);
 	while (!q.empty()) {
-		elem = q.front();
+		TreeNode *elem = q.front();
 		q.pop();
 		if (elem != nullptr) {
 			std::cout << elem->key << " ";
@@ -141,7 +162,7 @@ int main() {
 	int key;
 
 	while (is_running) {
-		std::cout << "1. Make BST" << std::endl;
+		std::cout << "1. Add nodes to BST" << std::endl;
 		std::cout << "2. Add node to BST" << std::endl;
 		std::cout << "3. Search BST for key" << std::endl;
 		std::cout << "4. Output BST" << std::endl;
@@ -149,7 +170,7 @@ int main() {
 		std::cout << "6. Delete BST" << std::endl;
 		std::cout << "7. Output max number of key reps" << std::endl;
 		std::cout << "0. Exit program" << std::endl;
-		std::cout << "Seect menu option: ";
+		std::cout << "Select menu option: ";
 
 		std::cin >> menu_option;
 
@@ -188,10 +209,10 @@ int main() {
 			// TODO: delete key from BST
 			break;
 		case 6:
-			// TODO: delete BST
+			bst.deallocate_nodes();
 			break;
 		case 0:
-			// TODO: delete BST
+			bst.deallocate_nodes();
 			is_running = false;
 			break;
 		default: 
