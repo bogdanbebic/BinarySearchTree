@@ -10,6 +10,7 @@ public:
 		TreeNode *left, *right;
 		explicit TreeNode(int node_key = 0, TreeNode *left_node_ptr = nullptr, TreeNode *right_node_ptr = nullptr);
 		bool is_leaf() const;
+		bool is_full_node() const;
 	};
 	struct KeyReps {
 		int key;
@@ -44,6 +45,10 @@ BinarySearchTree::TreeNode::TreeNode(int node_key, TreeNode* left_node_ptr, Tree
 
 bool BinarySearchTree::TreeNode::is_leaf() const {
 	return left == nullptr && right == nullptr;
+}
+
+bool BinarySearchTree::TreeNode::is_full_node() const {
+	return left != nullptr && right != nullptr;
 }
 
 BinarySearchTree::KeyReps::KeyReps(int key_i) {
@@ -133,6 +138,7 @@ void BinarySearchTree::delete_key(int key) {
 		// TODO: delete root
 	}
 	if (parent->is_leaf()) {
+		// There is no node with key
 		return;
 	}
 	if (parent->right->key == key) {
@@ -141,8 +147,12 @@ void BinarySearchTree::delete_key(int key) {
 			parent->right = nullptr;
 			delete to_delete;
 		}
+		else if (!to_delete->is_full_node()) {
+			parent->right = to_delete->left != nullptr ? to_delete->left : to_delete->right;
+			delete to_delete;
+		}
 		else {
-			// TODO: implement
+			// TODO: implement deletion for full node
 		}
 	}
 	else {
@@ -151,8 +161,12 @@ void BinarySearchTree::delete_key(int key) {
 			parent->left = nullptr;
 			delete to_delete;
 		}
+		else if (!to_delete->is_full_node()) {
+			parent->left = to_delete->left != nullptr ? to_delete->left : to_delete->right;
+			delete to_delete;
+		}
 		else {
-			// TODO: implement
+			// TODO: implement deleton for full node
 		}
 	}
 }
@@ -286,23 +300,23 @@ int main() {
 				std::cout << "Unsuccesful search :(" << std::endl;
 			}
 			break;
-		case 4:
+		case 4:	// OUTPUT LEVEL ORDER
 			std::cout << "Level order:" << std::endl;
 			bst.level_order_to_cout();
 			break;
-		case 5:
+		case 5:	// KEY DELETION
 			std::cout << "Input key to delete: ";
 			std::cin >> key;
 			bst.delete_key(key);
 			break;
-		case 6:
+		case 6:	// TREE DELETION
 			bst.deallocate_nodes();
 			break;
-		case 7:
+		case 7:	// MAX KEY REPS
 			reps = bst.get_max_key_reps();
 			std::cout << "Max reps (" << reps.reps << ") by key " << reps.key << std::endl;
 			break;
-		case 0:
+		case 0:	// EXIT
 			bst.deallocate_nodes();
 			is_running = false;
 			break;
