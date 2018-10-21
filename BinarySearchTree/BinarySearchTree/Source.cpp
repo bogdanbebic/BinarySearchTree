@@ -8,6 +8,7 @@ public:
 		int key;
 		TreeNode *left, *right;
 		explicit TreeNode(int node_key = 0, TreeNode *left_node_ptr = nullptr, TreeNode *right_node_ptr = nullptr);
+		bool is_leaf() const;
 	};
 	
 	explicit BinarySearchTree(TreeNode *root_node = nullptr);
@@ -18,7 +19,8 @@ public:
 	TreeNode *find_parent(int key) const;
 	void insert(int key);
 	void level_order_to_cout() const;
-	TreeNode *search(int key) const;	// NOT USED
+	bool search(int key) const;	// USED ONLY IN MAIN
+	
 	// TODO: implement key deletion
 	// TODO: imlement max key reps searching
 private:
@@ -33,13 +35,16 @@ BinarySearchTree::TreeNode::TreeNode(int node_key, TreeNode* left_node_ptr, Tree
 	right = right_node_ptr;
 }
 
+bool BinarySearchTree::TreeNode::is_leaf() const {
+	return left == nullptr && right == nullptr;
+}
+
 BinarySearchTree::BinarySearchTree(TreeNode *root_node) {
 	root_ = root_node;
 }
 
 BinarySearchTree::~BinarySearchTree() {
 	deallocate_nodes();
-	root_ = nullptr;
 }
 
 BinarySearchTree::TreeNode* BinarySearchTree::find_parent(int key) const {
@@ -57,9 +62,9 @@ BinarySearchTree::TreeNode* BinarySearchTree::find_parent(int key) const {
 }
 
 /**
- * NOT USED
+ * USED ONLY IN MAIN
  */
-BinarySearchTree::TreeNode* BinarySearchTree::search(int key) const {
+bool BinarySearchTree::search(int key) const {
 	TreeNode *current = root_;
 	while (current != nullptr && key != current->key) {
 		if (key < current->key) {
@@ -69,7 +74,7 @@ BinarySearchTree::TreeNode* BinarySearchTree::search(int key) const {
 			current = current->right;
 		}
 	}
-	return current;
+	return current != nullptr;
 }
 
 void BinarySearchTree::deallocate_nodes() {
@@ -84,6 +89,7 @@ void BinarySearchTree::deallocate_nodes() {
 			delete elem;
 		}
 	}
+	root_ = nullptr;
 }
 
 /**	!!!!! WARNING !!!!!
@@ -158,7 +164,6 @@ int main() {
 	int menu_option;
 	bool is_running = true;
 	BinarySearchTree bst;
-	BinarySearchTree::TreeNode *elem;
 	int key;
 
 	while (is_running) {
@@ -193,9 +198,8 @@ int main() {
 		case 3:	// KEY SEARCHING
 			std::cout << "Input key to search for: ";
 			std::cin >> key;
-			elem = bst.search(key);
-			if (elem != nullptr) {
-				std::cout << "Succesful search: " << elem->key << std::endl;
+			if (bst.search(key)) {
+				std::cout << "Succesful search, key: " << key << std::endl;
 			}
 			else {
 				std::cout << "Unsuccesful search :(" << std::endl;
