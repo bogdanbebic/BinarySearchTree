@@ -1,5 +1,6 @@
 #include <iostream>
 #include <queue>
+#include <stack>
 
 
 class BinarySearchTree {
@@ -10,19 +11,25 @@ public:
 		explicit TreeNode(int node_key = 0, TreeNode *left_node_ptr = nullptr, TreeNode *right_node_ptr = nullptr);
 		bool is_leaf() const;
 	};
+	struct KeyReps {
+		int key;
+		int reps;
+		explicit KeyReps(int key_i = 0);
+	};
 	
 	explicit BinarySearchTree(TreeNode *root_node = nullptr);
 	BinarySearchTree(const BinarySearchTree &) = delete;
 	void operator=(const BinarySearchTree &) = delete;
 	~BinarySearchTree();
+
 	void deallocate_nodes();
 	TreeNode *find_parent(int key) const;
 	void insert(int key);
 	void level_order_to_cout() const;
 	bool search(int key) const;	// USED ONLY IN MAIN
-	
-	// TODO: implement key deletion
-	// TODO: imlement max key reps searching
+	KeyReps get_max_key_reps() const;
+	void delete_key(int key);
+
 private:
 	TreeNode *inorder_pred(TreeNode *start_node) const;
 	void insert_below_parent(int key, TreeNode *parent);
@@ -37,6 +44,11 @@ BinarySearchTree::TreeNode::TreeNode(int node_key, TreeNode* left_node_ptr, Tree
 
 bool BinarySearchTree::TreeNode::is_leaf() const {
 	return left == nullptr && right == nullptr;
+}
+
+BinarySearchTree::KeyReps::KeyReps(int key_i) {
+	key = key_i;
+	reps = 0;
 }
 
 BinarySearchTree::BinarySearchTree(TreeNode *root_node) {
@@ -75,6 +87,74 @@ bool BinarySearchTree::search(int key) const {
 		}
 	}
 	return current != nullptr;
+}
+
+BinarySearchTree::KeyReps BinarySearchTree::get_max_key_reps() const {
+	KeyReps max_reps, reps;
+	std::stack<TreeNode *> s;
+	if (root_ == nullptr) {
+		return max_reps;
+	}
+	reps.key = root_->key;
+	TreeNode *current = root_;
+	while (current != nullptr) {
+		s.push(current);
+		current = current->left;
+	}
+	while (!s.empty()) {
+		current = s.top();
+		s.pop();
+		if (reps.key != current->key) {
+			if (reps.reps > max_reps.reps) {
+				max_reps = reps;
+			}
+			reps.key = current->key;
+			reps.reps = 0;
+		}
+		reps.reps++;
+
+		current = current->right;
+		while (current != nullptr) {
+			s.push(current);
+			current = current->left;
+		}
+		
+		if (reps.reps > max_reps.reps) {
+			max_reps = reps;
+		}
+	}
+	return max_reps;
+}
+
+void BinarySearchTree::delete_key(int key) {
+	TreeNode *parent = find_parent(key);
+	TreeNode *to_delete;
+	if (parent == nullptr) {
+		// TODO: delete root
+	}
+	if (parent->is_leaf()) {
+		return;
+	}
+	if (parent->right->key == key) {
+		to_delete = parent->right;
+		if (to_delete->is_leaf()) {
+			parent->right = nullptr;
+			delete to_delete;
+		}
+		else {
+			// TODO: implement
+		}
+	}
+	else {
+		to_delete = parent->left;
+		if (to_delete->is_leaf()) {
+			parent->left = nullptr;
+			delete to_delete;
+		}
+		else {
+			// TODO: implement
+		}
+	}
 }
 
 void BinarySearchTree::deallocate_nodes() {
@@ -164,6 +244,7 @@ int main() {
 	int menu_option;
 	bool is_running = true;
 	BinarySearchTree bst;
+	BinarySearchTree::KeyReps reps;
 	int key;
 
 	while (is_running) {
@@ -210,10 +291,16 @@ int main() {
 			bst.level_order_to_cout();
 			break;
 		case 5:
-			// TODO: delete key from BST
+			std::cout << "Input key to delete: ";
+			std::cin >> key;
+			bst.delete_key(key);
 			break;
 		case 6:
 			bst.deallocate_nodes();
+			break;
+		case 7:
+			reps = bst.get_max_key_reps();
+			std::cout << "Max reps (" << reps.reps << ") by key " << reps.key << std::endl;
 			break;
 		case 0:
 			bst.deallocate_nodes();
