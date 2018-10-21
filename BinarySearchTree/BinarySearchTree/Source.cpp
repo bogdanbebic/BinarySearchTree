@@ -33,6 +33,7 @@ public:
 
 private:
 	TreeNode *inorder_pred(TreeNode *start_node) const;
+	TreeNode *inorder_pred_parent(TreeNode *start_node) const;
 	void insert_below_parent(int key, TreeNode *parent);
 	TreeNode *root_;
 };
@@ -134,13 +135,36 @@ BinarySearchTree::KeyReps BinarySearchTree::get_max_key_reps() const {
 void BinarySearchTree::delete_key(int key) {
 	TreeNode *parent = find_parent(key);
 	TreeNode *to_delete;
+	/**
+	 *	EDGE CASE FOR DELETING ROOT NODE
+	 */
 	if (parent == nullptr) {
-		// TODO: delete root
+		to_delete = root_;
+		if (to_delete->is_leaf()) {
+			delete to_delete;
+			root_ = nullptr;
+		}
+		else if (!to_delete->is_full_node()) {
+			root_ = to_delete->left != nullptr ? to_delete->left : to_delete->right;
+			delete to_delete;
+		}
+		else {
+			TreeNode *pred_parent = inorder_pred_parent(to_delete);
+			pred_parent->right->right = to_delete->right;
+			TreeNode *temp = pred_parent->right->left;
+			root_ = pred_parent->right;
+			root_->left = to_delete->left;
+			pred_parent->right = temp;
+			delete to_delete;
+		}
+		return;
 	}
+
 	if (parent->is_leaf()) {
 		// There is no node with key
 		return;
 	}
+
 	if (parent->right->key == key) {
 		to_delete = parent->right;
 		if (to_delete->is_leaf()) {
@@ -152,7 +176,13 @@ void BinarySearchTree::delete_key(int key) {
 			delete to_delete;
 		}
 		else {
-			// TODO: implement deletion for full node
+			TreeNode *pred_parent = inorder_pred_parent(to_delete);
+			pred_parent->right->right = to_delete->right;	// BUG: pred_parent is to_delete
+			TreeNode *temp = pred_parent->right->left;
+			parent->right = pred_parent->right;
+			parent->right->left = to_delete->left;
+			pred_parent->right = temp;
+			delete to_delete;
 		}
 	}
 	else {
@@ -166,7 +196,13 @@ void BinarySearchTree::delete_key(int key) {
 			delete to_delete;
 		}
 		else {
-			// TODO: implement deleton for full node
+			TreeNode *pred_parent = inorder_pred_parent(to_delete);
+			pred_parent->right->right = to_delete->right;	// BUG: pred_parent is to_delete
+			TreeNode *temp = pred_parent->right->left;
+			parent->left = pred_parent->right;
+			parent->left->left = to_delete->left;
+			pred_parent->right = temp;
+			delete to_delete;
 		}
 	}
 }
@@ -195,6 +231,22 @@ BinarySearchTree::TreeNode* BinarySearchTree::inorder_pred(TreeNode* start_node)
 		pred = start_node->left;
 		while (pred->right != nullptr) {
 			pred = pred->right;
+		}
+	}
+	return pred;
+}
+
+/**	!!!!! WARNING !!!!!
+*	ONLY FINDS INORDER PRED BELOW CURRENT NODE
+*/
+BinarySearchTree::TreeNode* BinarySearchTree::inorder_pred_parent(TreeNode* start_node) const {
+	TreeNode *pred = start_node;
+	if (start_node->left != nullptr) {
+		pred = start_node->left;
+		if (pred->right != nullptr) {
+			while (pred->right->right != nullptr) {
+				pred = pred->right;
+			}
 		}
 	}
 	return pred;
